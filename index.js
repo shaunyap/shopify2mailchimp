@@ -7,7 +7,11 @@ const apiEndPoint = "https://" + apiKey + ":" + apiSecret + "@lully-selb.myshopi
 
 axios.get(apiEndPoint)
   .then(response => {
-    console.log(response.data);
+    const customerArray = response.data.customers
+    const activeSubscribers = customerArray.filter(customer => {
+      return (customer.tags.includes("active_subscriber") && !customer.tags.includes("inactive_subscriber"))
+    })
+    console.log(activeSubscribers);
   })
   .catch(error => {
     console.log(error);
