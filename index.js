@@ -12,18 +12,14 @@ const mailchimpURL = process.env.MAILCHIMP_URL;
 const encodeValue = "anystring:"+mailchimpKey
 const authBase64 = Buffer.from(encodeValue).toString('base64')
 
-<<<<<<< HEAD
 let mailchimpFormattedSubs = []
 
-=======
->>>>>>> 260bb1f130f27f2cb14aaff90cc3838661f88c61
 axios.get(shopifyEndPoint)
   .then(response => {
     const customerArray = response.data.customers
     const activeSubscribers = customerArray.filter(customer => {
       return (customer.tags.includes("active_subscriber") && !customer.tags.includes("inactive_subscriber"))
     })
-<<<<<<< HEAD
     activeSubscribers.forEach(function(shopifySub) {
       let mailchimpSub = {
         "email_address" : shopifySub.email,
@@ -58,38 +54,3 @@ axios.get(shopifyEndPoint)
   .catch(error => {
     console.log(error);
   })
-=======
-    // console.log(activeSubscribers);
-    console.log("Shopify API Ran")
-  })
-  .catch(error => {
-    console.log(error);
-  });
-
-  // TODO: turn this into a .then statement
-
-  axios({
-  method: 'post',
-  // TODO: Mailchimp has a bulk import function for up to 500 users, consider using this
-  url: mailchimpURL + "/lists/5910c026be/members",
-  headers: {
-    Authorization: "Basic " + authBase64
-    },
-    // TODO: Format data for ingestion into Mailchimp
-  data: {
-    "email_address": "cookie@tester.com",
-    "status": "subscribed",
-    "merge_fields": {
-        "FNAME": "Cooksie",
-        "LNAME": "Bailey"
-    },
-    "tags": ["active_subscriber"]
-  }
-})
-    .then(response => {
-      console.log(response.data)
-    })
-    .catch(error => {
-      console.log(error);
-    })
->>>>>>> 260bb1f130f27f2cb14aaff90cc3838661f88c61
