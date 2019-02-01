@@ -4,7 +4,8 @@ const axios = require('axios');
 
 const shopifyKey = process.env.SHOPIFY_API_KEY;
 const shopifySecret = process.env.SHOPIFY_API_SECRET;
-const shopifyEndPoint = "https://" + shopifyKey + ":" + shopifySecret + "@lully-selb.myshopify.com/admin/customers.json"
+const shopifyActiveEndPoint = "https://" + shopifyKey + ":" + shopifySecret + "@lully-selb.myshopify.com/admin/customers/search.json?query=active_subscriber"
+const shopifyInactiveEndPoint = "https://" + shopifyKey + ":" + shopifySecret + "@lully-selb.myshopify.com/admin/customers/search.json?query=inactive_subscriber"
 
 const mailchimpKey = process.env.MAILCHIMP_API_KEY;
 const mailchimpURL = process.env.MAILCHIMP_URL;
@@ -12,44 +13,64 @@ const mailchimpURL = process.env.MAILCHIMP_URL;
 const encodeValue = "anystring:"+mailchimpKey
 const authBase64 = Buffer.from(encodeValue).toString('base64')
 
-let mailchimpFormattedSubs = []
+let mailchimpNewSubs = []
 
-axios.get(shopifyEndPoint)
+// First get all the active subscribers and add them into the mailchimpNewSubs
+axios.get(shopifyActiveEndPoint)
   .then(response => {
     const customerArray = response.data.customers
-    const activeSubscribers = customerArray.filter(customer => {
-      return (customer.tags.includes("active_subscriber") && !customer.tags.includes("inactive_subscriber"))
-    })
-    activeSubscribers.forEach(function(shopifySub) {
+    customerArray.forEach(function(shopifySub) {
       let mailchimpSub = {
         "email_address" : shopifySub.email,
-            "status": "subscribed",
+        "status": "subscribed",
+        "merge_fields": {
+            "FNAME": shopifySub.first_name,
+            "LNAME": shopifySub.last_name
+        }
+      }
+      mailchimpNewSubs.push(mailchimpSub)
+    })
+    // Next, get all the ones who cancelled and add them in, but set their status to unsubscribed.
+    axios.get(shopifyInactiveEndPoint)
+      .then(response => {
+        const customerArray = response.data.customers
+        customerArray.forEach(function(shopifySub) {
+          let mailchimpSub = {
+            "email_address" : shopifySub.email,
+            "status": "unsubscribed",
             "merge_fields": {
                 "FNAME": shopifySub.first_name,
                 "LNAME": shopifySub.last_name
-            },
-            "tags": ["active_subscriber"]
-      }
-      mailchimpFormattedSubs.push(mailchimpSub)
-    })
-    axios({
-    method: 'post',
-    // TODO: Mailchimp's bulk import/update function supports up to 500 users
-    url: mailchimpURL + "/lists/5910c026be",
-    headers: {
-      Authorization: "Basic " + authBase64
-      },
-      data: {
-      	"members": mailchimpFormattedSubs,
-      	"update_existing": true
-      }
-  })
+            }
+          }
+          mailchimpNewSubs.push(mailchimpSub)
+        })
+      })
+
+      // Then bulk update the list
       .then(response => {
-        console.log("List uploaded")
+        axios({
+        method: 'post',
+        // TODO: Mailchimp's bulk import/update function supports up to 500 users
+        url: mailchimpURL + "/lists/5b8002aa95",
+        headers: {
+          Authorization: "Basic " + authBase64
+          },
+          data: {
+          	"members": mailchimpNewSubs,
+          	"update_existing": true
+          }
+        })
+        .then(response => {
+          console.log("Success! List updated.")
+        })
+        .catch(error => {
+          console.log(error);
+        })
       })
-      .catch(error => {
-        console.log(error);
-      })
+    .catch(error => {
+      console.log(error)
+    })
   })
   .catch(error => {
     console.log(error);
