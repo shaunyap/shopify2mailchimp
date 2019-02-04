@@ -16,66 +16,66 @@ const authBase64 = Buffer.from(encodeValue).toString('base64')
 
 let mailchimpNewSubs = []
 
-// // First get all the active subscribers and add them into the mailchimpNewSubs
-// axios.get(shopifyActiveEndPoint)
-//   .then(response => {
-//     const customerArray = response.data.customers
-//     customerArray.forEach(function(shopifySub) {
-//       let mailchimpSub = {
-//         "email_address" : shopifySub.email,
-//         "status": "subscribed",
-//         "merge_fields": {
-//             "FNAME": shopifySub.first_name,
-//             "LNAME": shopifySub.last_name
-//         }
-//       }
-//       mailchimpNewSubs.push(mailchimpSub)
-//     })
-//     // Next, get all the ones who cancelled and add them in, but set their status to unsubscribed.
-//     axios.get(shopifyInactiveEndPoint)
-//       .then(response => {
-//         const customerArray = response.data.customers
-//         customerArray.forEach(function(shopifySub) {
-//           let mailchimpSub = {
-//             "email_address" : shopifySub.email,
-//             "status": "unsubscribed",
-//             "merge_fields": {
-//                 "FNAME": shopifySub.first_name,
-//                 "LNAME": shopifySub.last_name
-//             }
-//           }
-//           mailchimpNewSubs.push(mailchimpSub)
-//         })
-//       })
-//
-//       // Then bulk update the list
-//       // Mailchimp's bulk import/update function supports up to 500 users
-//       .then(response => {
-//         axios({
-//         method: 'post',
-//         url: mailchimpURL,
-//         headers: {
-//           Authorization: "Basic " + authBase64
-//           },
-//           data: {
-//           	"members": mailchimpNewSubs,
-//           	"update_existing": true
-//           }
-//         })
-//         .then(response => {
-//           console.log("Success! List updated.")
-//         })
-//         .catch(error => {
-//           console.log(error);
-//         })
-//       })
-//     .catch(error => {
-//       console.log(error)
-//     })
-//   })
-//   .catch(error => {
-//     console.log(error);
-//   })
+// First get all the active subscribers and add them into the mailchimpNewSubs
+axios.get(shopifyActiveEndPoint)
+  .then(response => {
+    const customerArray = response.data.customers
+    customerArray.forEach(function(shopifySub) {
+      let mailchimpSub = {
+        "email_address" : shopifySub.email,
+        "status": "subscribed",
+        "merge_fields": {
+            "FNAME": shopifySub.first_name,
+            "LNAME": shopifySub.last_name
+        }
+      }
+      mailchimpNewSubs.push(mailchimpSub)
+    })
+    // Next, get all the ones who cancelled and add them in, but set their status to unsubscribed.
+    axios.get(shopifyInactiveEndPoint)
+      .then(response => {
+        const customerArray = response.data.customers
+        customerArray.forEach(function(shopifySub) {
+          let mailchimpSub = {
+            "email_address" : shopifySub.email,
+            "status": "unsubscribed",
+            "merge_fields": {
+                "FNAME": shopifySub.first_name,
+                "LNAME": shopifySub.last_name
+            }
+          }
+          mailchimpNewSubs.push(mailchimpSub)
+        })
+      })
+
+      // Then bulk update the list
+      // Mailchimp's bulk import/update function supports up to 500 users
+      .then(response => {
+        axios({
+        method: 'post',
+        url: mailchimpURL,
+        headers: {
+          Authorization: "Basic " + authBase64
+          },
+          data: {
+          	"members": mailchimpNewSubs,
+          	"update_existing": true
+          }
+        })
+        .then(response => {
+          console.log("Success! List updated.")
+        })
+        .catch(error => {
+          console.log(error);
+        })
+      })
+    .catch(error => {
+      console.log(error)
+    })
+  })
+  .catch(error => {
+    console.log(error);
+  })
 
   deleteUsersFromMailchimpList('shaun@siegeflow.com', '1ee7bc797c')
 
