@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const axios = require('axios');
+const md5 = require('js-md5');
 
 const shopifyKey = process.env.SHOPIFY_API_KEY;
 const shopifySecret = process.env.SHOPIFY_API_SECRET;
@@ -8,7 +9,7 @@ const shopifyActiveEndPoint = "https://" + shopifyKey + ":" + shopifySecret + "@
 const shopifyInactiveEndPoint = "https://" + shopifyKey + ":" + shopifySecret + "@lully-selb.myshopify.com/admin/customers/search.json?query=inactive_subscriber"
 
 const mailchimpKey = process.env.MAILCHIMP_API_KEY;
-const mailchimpURL = process.env.MAILCHIMP_URL;
+const mailchimpURL = process.env.MAILCHIMP_URL + process.env.MAILCHIMP_ENDPOINT;
 // Mailchimp's Get request allows for direct use of the API Key, but the Post request needs it to be in Base64 for some odd reason.
 const encodeValue = "anystring:"+mailchimpKey
 const authBase64 = Buffer.from(encodeValue).toString('base64')
@@ -48,11 +49,11 @@ axios.get(shopifyActiveEndPoint)
       })
 
       // Then bulk update the list
+      // Mailchimp's bulk import/update function supports up to 500 users
       .then(response => {
         axios({
         method: 'post',
-        // TODO: Mailchimp's bulk import/update function supports up to 500 users
-        url: mailchimpURL + "/lists/5b8002aa95",
+        url: mailchimpURL,
         headers: {
           Authorization: "Basic " + authBase64
           },
@@ -75,3 +76,16 @@ axios.get(shopifyActiveEndPoint)
   .catch(error => {
     console.log(error);
   })
+
+
+  function deleteUsersFromMailchimpList(userEmail, list) {
+    const emailHash = md5(userEmail);
+    // axios({
+    //   method:'get',
+    //   // TODO: figure out endpoint
+    //   url:
+    // })
+    // if (emailHash in list == true) {
+    //   delete userEmail from list
+    // }
+  }
